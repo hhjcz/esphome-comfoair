@@ -291,6 +291,10 @@ protected:
     }
 
     if (index < COMMAND_LEN_HEAD + data_length) {
+      // handle escaped 0x07 byte (sequence of two 0x07 0x07 taken as one)
+      if (byte == COMMAND_PREFIX && data_[index-1] == COMMAND_PREFIX) {
+          data_index_--;
+      }
       return true;
     }
 
