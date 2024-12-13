@@ -44,16 +44,16 @@ public:
 
   void control_set_curmode_speeds(int exhaust, int supply) {
     // Default values: Abw ab 16 - Abw zu 0 - Low ab 47 - Low zu 35 - Middle ab 67 - Middle zu 50 - High ab 87 - High zu 70
-    ESP_LOGI(TAG, "Setting speeds for level %i to: %i,%i", ventilation_level->state, exhaust, supply);
+    ESP_LOGI(TAG, "Setting speeds for level %i to: %i,%i", ventilation_level_, exhaust, supply);
     uint8_t command_data[COMFOAIR_SET_VENTILATION_LEVEL_LENGTH] = {
-        (ventilation_level->state==0x01) ? ventilation_levels_[0] : (uint8_t)exhaust,
-        (ventilation_level->state==0x02) ? ventilation_levels_[2] : (uint8_t)exhaust,
-        (ventilation_level->state==0x03) ? ventilation_levels_[4] : (uint8_t)exhaust,
-        (ventilation_level->state==0x01) ? ventilation_levels_[1] : (uint8_t)supply,
-        (ventilation_level->state==0x02) ? ventilation_levels_[3] : (uint8_t)supply,
-        (ventilation_level->state==0x03) ? ventilation_levels_[5] : (uint8_t)supply,
-        (ventilation_level->state==0x04) ? ventilation_levels_[6] : (uint8_t)exhaust,
-        (ventilation_level->state==0x04) ? ventilation_levels_[7] : (uint8_t)supply,
+        (ventilation_level_==0x01) ? ventilation_levels_[0] : (uint8_t)exhaust,
+        (ventilation_level_==0x02) ? ventilation_levels_[2] : (uint8_t)exhaust,
+        (ventilation_level_==0x03) ? ventilation_levels_[4] : (uint8_t)exhaust,
+        (ventilation_level_==0x01) ? ventilation_levels_[1] : (uint8_t)supply,
+        (ventilation_level_==0x02) ? ventilation_levels_[3] : (uint8_t)supply,
+        (ventilation_level_==0x03) ? ventilation_levels_[5] : (uint8_t)supply,
+        (ventilation_level_==0x04) ? ventilation_levels_[6] : (uint8_t)exhaust,
+        (ventilation_level_==0x04) ? ventilation_levels_[7] : (uint8_t)supply,
         (uint8_t)0x00
     };  
     write_command_(COMFOAIR_SET_VENTILATION_LEVEL_REQUEST, command_data, sizeof(command_data));
@@ -444,6 +444,8 @@ protected:
         if (ventilation_level != nullptr) {
           ventilation_level->publish_state(msg[8] - 1);
         }
+        // hhj - local variable for now (sensor config above not working)
+        ventilation_level_ = msg[8] - 1;
 
         // Fan Speed
         switch(msg[8]) {
@@ -610,6 +612,7 @@ protected:
   int8_t update_counter_{-3};
 
   uint8_t ventilation_levels_[8];
+  uint8_t ventilation_level_;
 
   uint8_t bootloader_version_[13]{0};
   uint8_t firmware_version_[13]{0};
