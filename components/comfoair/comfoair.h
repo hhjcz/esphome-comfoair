@@ -29,14 +29,14 @@ public:
   void control_set_operation_mode(bool exhaust, bool supply) {
     ESP_LOGI(TAG, "Setting operation mode target exhaust: %i, supply: %i", exhaust, supply);
     uint8_t command_data[COMFOAIR_SET_VENTILATION_LEVEL_LENGTH] = {
-        exhaust ? ventilation_levels_[0] : (uint8_t)0,
-        exhaust ? ventilation_levels_[2] : (uint8_t)0,
-        exhaust ? ventilation_levels_[4] : (uint8_t)0,
-        supply ? ventilation_levels_[1] : (uint8_t)0,
-        supply ? ventilation_levels_[3] : (uint8_t)0,
-        supply ? ventilation_levels_[5] : (uint8_t)0,
-        exhaust ? ventilation_levels_[6] : (uint8_t)0,
-        supply ? ventilation_levels_[7] : (uint8_t)0,
+        exhaust ? this->ventilation_levels_[0] : (uint8_t)0,
+        exhaust ? this->ventilation_levels_[2] : (uint8_t)0,
+        exhaust ? this->ventilation_levels_[4] : (uint8_t)0,
+        supply ? this->ventilation_levels_[1] : (uint8_t)0,
+        supply ? this->ventilation_levels_[3] : (uint8_t)0,
+        supply ? this->ventilation_levels_[5] : (uint8_t)0,
+        exhaust ? this->ventilation_levels_[6] : (uint8_t)0,
+        supply ? this->ventilation_levels_[7] : (uint8_t)0,
         (uint8_t)0x00
     };
     write_command_(COMFOAIR_SET_VENTILATION_LEVEL_REQUEST, command_data, sizeof(command_data));
@@ -44,16 +44,16 @@ public:
 
   void control_set_curmode_speeds(int exhaust, int supply) {
     // Default values: Abw ab 16 - Abw zu 0 - Low ab 47 - Low zu 35 - Middle ab 67 - Middle zu 50 - High ab 87 - High zu 70
-    ESP_LOGI(TAG, "Setting speeds for level %i to: %i,%i", ventilation_level->state, exhaust, supply);
+    ESP_LOGI(TAG, "Setting speeds for level %i to: %i,%i", this->ventilation_level->state, exhaust, supply);
     uint8_t command_data[COMFOAIR_SET_VENTILATION_LEVEL_LENGTH] = {
-        (ventilation_level->state==0x01) ? ventilation_levels_[0] : (uint8_t)exhaust,
-        (ventilation_level->state==0x02) ? ventilation_levels_[2] : (uint8_t)exhaust,
-        (ventilation_level->state==0x03) ? ventilation_levels_[4] : (uint8_t)exhaust,
-        (ventilation_level->state==0x01) ? ventilation_levels_[1] : (uint8_t)supply,
-        (ventilation_level->state==0x02) ? ventilation_levels_[3] : (uint8_t)supply,
-        (ventilation_level->state==0x03) ? ventilation_levels_[5] : (uint8_t)supply,
-        (ventilation_level->state==0x04) ? ventilation_levels_[6] : (uint8_t)exhaust,
-        (ventilation_level->state==0x04) ? ventilation_levels_[7] : (uint8_t)supply,
+        (this->ventilation_level->state==0x01) ? this->ventilation_levels_[0] : (uint8_t)exhaust,
+        (this->ventilation_level->state==0x02) ? this->ventilation_levels_[2] : (uint8_t)exhaust,
+        (this->ventilation_level->state==0x03) ? this->ventilation_levels_[4] : (uint8_t)exhaust,
+        (this->ventilation_level->state==0x01) ? this->ventilation_levels_[1] : (uint8_t)supply,
+        (this->ventilation_level->state==0x02) ? this->ventilation_levels_[3] : (uint8_t)supply,
+        (this->ventilation_level->state==0x03) ? this->ventilation_levels_[5] : (uint8_t)supply,
+        (this->ventilation_level->state==0x04) ? this->ventilation_levels_[6] : (uint8_t)exhaust,
+        (this->ventilation_level->state==0x04) ? this->ventilation_levels_[7] : (uint8_t)supply,
         (uint8_t)0x00
     };  
     write_command_(COMFOAIR_SET_VENTILATION_LEVEL_REQUEST, command_data, sizeof(command_data));
@@ -62,14 +62,14 @@ public:
   void control_set_speeds(bool exhaust, bool supply, int off, int low, int mid, int high) {
     // Default values: Abw ab 16 - Abw zu 0 - Low ab 47 - Low zu 35 - Middle ab 67 - Middle zu 50 - High ab 87 - High zu 70
     uint8_t command_data[COMFOAIR_SET_VENTILATION_LEVEL_LENGTH] = {
-        !exhaust ? ventilation_levels_[0] : (uint8_t)off,
-        !exhaust ? ventilation_levels_[2] : (uint8_t)low,
-        !exhaust ? ventilation_levels_[4] : (uint8_t)mid,
-        !supply ? ventilation_levels_[1] : (uint8_t)off,
-        !supply ? ventilation_levels_[3] : (uint8_t)low,
-        !supply ? ventilation_levels_[5] : (uint8_t)mid,
-        !exhaust ? ventilation_levels_[6] : (uint8_t)high,
-        !supply ? ventilation_levels_[7] : (uint8_t)high,
+        !exhaust ? this->ventilation_levels_[0] : (uint8_t)off,
+        !exhaust ? this->ventilation_levels_[2] : (uint8_t)low,
+        !exhaust ? this->ventilation_levels_[4] : (uint8_t)mid,
+        !supply ? this->ventilation_levels_[1] : (uint8_t)off,
+        !supply ? this->ventilation_levels_[3] : (uint8_t)low,
+        !supply ? this->ventilation_levels_[5] : (uint8_t)mid,
+        !exhaust ? this->ventilation_levels_[6] : (uint8_t)high,
+        !supply ? this->ventilation_levels_[7] : (uint8_t)high,
         (uint8_t)0x00
     };
     write_command_(COMFOAIR_SET_VENTILATION_LEVEL_REQUEST, command_data, sizeof(command_data));
@@ -441,8 +441,8 @@ protected:
         if (this->supply_air_level != nullptr) {
           this->supply_air_level->publish_state(msg[7]);
         }
-        if (ventilation_level != nullptr) {
-          ventilation_level->publish_state(msg[8] - 1);
+        if (this->ventilation_level != nullptr) {
+          this->ventilation_level->publish_state(msg[8] - 1);
         }
 
         // Fan Speed
@@ -477,14 +477,14 @@ protected:
         }
 
         // Record current speeds for resetting them if needed.
-        if (msg[0]) ventilation_levels_[0] = msg[0];
-        if (msg[3]) ventilation_levels_[1] = msg[3];
-        if (msg[1]) ventilation_levels_[2] = msg[1];
-        if (msg[4]) ventilation_levels_[3] = msg[4];
-        if (msg[2]) ventilation_levels_[4] = msg[2];
-        if (msg[5]) ventilation_levels_[5] = msg[5];
-        if (msg[10]) ventilation_levels_[6] = msg[10];
-        if (msg[11]) ventilation_levels_[7] = msg[11];
+        if (msg[0]) this->ventilation_levels_[0] = msg[0];
+        if (msg[3]) this->ventilation_levels_[1] = msg[3];
+        if (msg[1]) this->ventilation_levels_[2] = msg[1];
+        if (msg[4]) this->ventilation_levels_[3] = msg[4];
+        if (msg[2]) this->ventilation_levels_[4] = msg[2];
+        if (msg[5]) this->ventilation_levels_[5] = msg[5];
+        if (msg[10]) this->ventilation_levels_[6] = msg[10];
+        if (msg[11]) this->ventilation_levels_[7] = msg[11];
 
         break;
       }
