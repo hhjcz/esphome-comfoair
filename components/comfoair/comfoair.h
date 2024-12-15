@@ -24,6 +24,7 @@ public:
       // needs more investigation
       // register_service(&ComfoAirComponent::control_set_operation_mode, "climate_set_operation_mode", {"exhaust_fan", "supply_fan"});
       register_service(&ComfoAirComponent::control_set_speeds, "climate_set_speeds", {"exhaust_fan", "supply_fan", "off", "low", "mid", "high"});
+      register_service(&ComfoAirComponent::control_set_all_speeds, "climate_set_all_speeds", {"supply_off", "supply_low", "supply_mid", "supply_high", "exhaust_off", "exhaust_low", "exhaust_mid", "exhaust_high"});
       register_service(&ComfoAirComponent::control_set_curmode_speeds, "climate_set_current_mode_speeds", {"exhaust", "supply"});
   }
   
@@ -71,6 +72,22 @@ public:
         !supply ? ventilation_levels_[5] : (uint8_t)mid,
         !exhaust ? ventilation_levels_[6] : (uint8_t)high,
         !supply ? ventilation_levels_[7] : (uint8_t)high,
+        (uint8_t)0x00
+    };
+    write_command_(COMFOAIR_SET_VENTILATION_LEVEL_REQUEST, command_data, sizeof(command_data));
+  }
+
+  void control_set_all_speeds(int supply_off, int supply_low, int supply_mid, int supply_high, int exhaust_off, int exhaust_low, int exhaust_mid, int exhaust_high) {
+    // Default values: Abw ab 16 - Abw zu 0 - Low ab 47 - Low zu 35 - Middle ab 67 - Middle zu 50 - High ab 87 - High zu 70
+    uint8_t command_data[COMFOAIR_SET_VENTILATION_LEVEL_LENGTH] = {
+        (uint8_t)exhaust_off,
+        (uint8_t)exhaust_low,
+        (uint8_t)exhaust_mid,
+        (uint8_t)supply_off,
+        (uint8_t)supply_low,
+        (uint8_t)supply_mid,
+        (uint8_t)supply_high,
+        (uint8_t)exhaust_high,
         (uint8_t)0x00
     };
     write_command_(COMFOAIR_SET_VENTILATION_LEVEL_REQUEST, command_data, sizeof(command_data));
