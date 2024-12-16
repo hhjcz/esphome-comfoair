@@ -136,7 +136,7 @@ cv.Optional(CONF_SUPPLY_AIR_LEVEL): sensor.sensor_schema(
     unit_of_measurement=UNIT_CUBIC_METER,
     accuracy_decimals=1,
     state_class=STATE_CLASS_MEASUREMENT).extend(),
-cv.Optional(CONF_SUPPLY_AIR_LEVEL): sensor.sensor_schema(
+cv.Optional(CONF_VENTILATION_LEVEL): sensor.sensor_schema(
     device_class=DEVICE_CLASS_EMPTY,
     accuracy_decimals=0,
     state_class=STATE_CLASS_MEASUREMENT).extend(),
