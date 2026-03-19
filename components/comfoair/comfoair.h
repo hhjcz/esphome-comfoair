@@ -21,29 +21,11 @@ public:
   UARTDevice() { }
   
   void setup() override {
-      // needs more investigation
-      // register_service(&ComfoAirComponent::control_set_operation_mode, "climate_set_operation_mode", {"exhaust_fan", "supply_fan"});
       register_service(&ComfoAirComponent::control_set_speeds, "climate_set_speeds", {"exhaust_fan", "supply_fan", "off", "low", "mid", "high"});
       register_service(&ComfoAirComponent::control_set_all_speeds, "climate_set_all_speeds", {"supply_off", "supply_low", "supply_mid", "supply_high", "exhaust_off", "exhaust_low", "exhaust_mid", "exhaust_high"});
       register_service(&ComfoAirComponent::control_set_curmode_speeds, "climate_set_current_mode_speeds", {"exhaust", "supply"});
   }
   
-  void control_set_operation_mode(bool exhaust, bool supply) {
-    ESP_LOGI(TAG, "Setting operation mode target exhaust: %i, supply: %i", exhaust, supply);
-    uint8_t command_data[COMFOAIR_SET_VENTILATION_LEVEL_LENGTH] = {
-        exhaust ? ventilation_levels_[0] : (uint8_t)0,
-        exhaust ? ventilation_levels_[2] : (uint8_t)0,
-        exhaust ? ventilation_levels_[4] : (uint8_t)0,
-        supply ? ventilation_levels_[1] : (uint8_t)0,
-        supply ? ventilation_levels_[3] : (uint8_t)0,
-        supply ? ventilation_levels_[5] : (uint8_t)0,
-        exhaust ? ventilation_levels_[6] : (uint8_t)0,
-        supply ? ventilation_levels_[7] : (uint8_t)0,
-        (uint8_t)0x00
-    };
-    write_command_(COMFOAIR_SET_VENTILATION_LEVEL_REQUEST, command_data, sizeof(command_data));
-  }
-
   void control_set_curmode_speeds(float exhaust, float supply) {
     ESP_LOGI(TAG, "Setting speeds for level %i to: %.0f,%.0f", ventilation_level->state, exhaust, supply);
     uint8_t command_data[COMFOAIR_SET_VENTILATION_LEVEL_LENGTH] = {
@@ -104,7 +86,6 @@ public:
     });
     traits.set_visual_min_temperature(12);
     traits.set_visual_max_temperature(29);
-    //traits.set_visual_tXComfoAirComponentemperature_step(1);
     traits.set_supported_fan_modes({
       climate::CLIMATE_FAN_AUTO,
       climate::CLIMATE_FAN_LOW,
@@ -161,7 +142,6 @@ public:
   void dump_config() override {
     uint8_t *p;
     ESP_LOGCONFIG(TAG, "ComfoAir:");
-    //LOG_UPDATE_INTERVAL(this);
     p = bootloader_version_;
     ESP_LOGCONFIG(TAG, "  Bootloader %.10s v%0d.%02d b%2d", p + 3, *p, *(p + 1), *(p + 2));
     p = firmware_version_;
@@ -246,13 +226,12 @@ public:
     this->write_command_(COMFOAIR_SET_RESET_REQUEST, reset_cmd, sizeof(reset_cmd));
 	}
 
-  // void set_name(const char* value) {this->name = value;}
   void set_uart_component(uart::UARTComponent *parent) {this->set_uart_parent(parent);}
 
 protected:
 
   void set_level_(int level) {
-    if (level < 0 || level > 5) {
+    if (level < 0 || level > 4) {
       ESP_LOGI(TAG, "Ignoring invalid level request: %i", level);
       return;
     }
@@ -589,7 +568,7 @@ protected:
     if (this->outside_air_temperature != nullptr ||
       this->supply_air_temperature != nullptr ||
       this->return_air_temperature != nullptr ||
-      this->outside_air_temperature != nullptr) {
+      this->exhaust_air_temperature != nullptr) {
       ESP_LOGD(TAG, "getting temperature");
       this->write_command_(COMFOAIR_GET_TEMPERATURE_REQUEST, nullptr, 0);
     }
@@ -629,9 +608,8 @@ protected:
   uint8_t bootloader_version_[13]{0};
   uint8_t firmware_version_[13]{0};
   uint8_t connector_board_version_[14]{0};
-  const char* name{0};
 
-public: 
+public:
   sensor::Sensor *fan_supply_air_percentage{nullptr};
   sensor::Sensor *fan_exhaust_air_percentage{nullptr};
   sensor::Sensor *fan_speed_supply{nullptr};
@@ -656,29 +634,29 @@ public:
   binary_sensor::BinarySensor *is_supply_fan_active{nullptr};
   binary_sensor::BinarySensor *is_filter_full{nullptr};
 
-  void set_fan_supply_air_percentage(sensor::Sensor *fan_supply_air_percentage) {this->fan_supply_air_percentage = fan_supply_air_percentage;};
-  void set_fan_exhaust_air_percentage(sensor::Sensor *fan_exhaust_air_percentage) {this->fan_exhaust_air_percentage =fan_exhaust_air_percentage; };
-  void set_fan_speed_supply(sensor::Sensor *fan_speed_supply) {this->fan_speed_supply =fan_speed_supply; };
-  void set_fan_speed_exhaust(sensor::Sensor *fan_speed_exhaust) {this->fan_speed_exhaust =fan_speed_exhaust; };
-  void set_is_bypass_valve_open(binary_sensor::BinarySensor *is_bypass_valve_open) {this->is_bypass_valve_open =is_bypass_valve_open; };
-  void set_is_preheating(binary_sensor::BinarySensor *is_preheating) {this->is_preheating =is_preheating; };
-  void set_outside_air_temperature(sensor::Sensor *outside_air_temperature) {this->outside_air_temperature =outside_air_temperature; };
-  void set_supply_air_temperature(sensor::Sensor *supply_air_temperature) {this->supply_air_temperature =supply_air_temperature; };
-  void set_return_air_temperature(sensor::Sensor *return_air_temperature) {this->return_air_temperature =return_air_temperature; };
-  void set_exhaust_air_temperature(sensor::Sensor *exhaust_air_temperature) {this->exhaust_air_temperature =exhaust_air_temperature; };
-  void set_enthalpy_temperature(sensor::Sensor *enthalpy_temperature) {this->enthalpy_temperature =enthalpy_temperature; };
-  void set_ewt_temperature(sensor::Sensor *ewt_temperature) {this->ewt_temperature =ewt_temperature; };
-  void set_reheating_temperature(sensor::Sensor *reheating_temperature) {this->reheating_temperature =reheating_temperature; };
-  void set_kitchen_hood_temperature(sensor::Sensor *kitchen_hood_temperature) {this->kitchen_hood_temperature =kitchen_hood_temperature; };
-  void set_return_air_level(sensor::Sensor *return_air_level) {this->return_air_level =return_air_level; };
-  void set_supply_air_level(sensor::Sensor *supply_air_level) {this->supply_air_level =supply_air_level; };
-  void set_ventilation_level(sensor::Sensor *ventilation_level) { this->ventilation_level = ventilation_level; };
-  void set_is_supply_fan_active(binary_sensor::BinarySensor *is_supply_fan_active) {this->is_supply_fan_active =is_supply_fan_active; };
-  void set_is_filter_full(binary_sensor::BinarySensor *is_filter_full) {this->is_filter_full =is_filter_full; };
-  void set_bypass_factor(sensor::Sensor *bypass_factor) {this->bypass_factor = bypass_factor; };
-  void set_bypass_step(sensor::Sensor *bypass_step) {this->bypass_step = bypass_step; };
-  void set_bypass_correction(sensor::Sensor *bypass_correction) {this->bypass_correction = bypass_correction; };
-  void set_is_summer_mode(binary_sensor::BinarySensor *is_summer_mode) {this->is_summer_mode = is_summer_mode; };
+  void set_fan_supply_air_percentage(sensor::Sensor *fan_supply_air_percentage) { this->fan_supply_air_percentage = fan_supply_air_percentage; }
+  void set_fan_exhaust_air_percentage(sensor::Sensor *fan_exhaust_air_percentage) { this->fan_exhaust_air_percentage = fan_exhaust_air_percentage; }
+  void set_fan_speed_supply(sensor::Sensor *fan_speed_supply) { this->fan_speed_supply = fan_speed_supply; }
+  void set_fan_speed_exhaust(sensor::Sensor *fan_speed_exhaust) { this->fan_speed_exhaust = fan_speed_exhaust; }
+  void set_is_bypass_valve_open(binary_sensor::BinarySensor *is_bypass_valve_open) { this->is_bypass_valve_open = is_bypass_valve_open; }
+  void set_is_preheating(binary_sensor::BinarySensor *is_preheating) { this->is_preheating = is_preheating; }
+  void set_outside_air_temperature(sensor::Sensor *outside_air_temperature) { this->outside_air_temperature = outside_air_temperature; }
+  void set_supply_air_temperature(sensor::Sensor *supply_air_temperature) { this->supply_air_temperature = supply_air_temperature; }
+  void set_return_air_temperature(sensor::Sensor *return_air_temperature) { this->return_air_temperature = return_air_temperature; }
+  void set_exhaust_air_temperature(sensor::Sensor *exhaust_air_temperature) { this->exhaust_air_temperature = exhaust_air_temperature; }
+  void set_enthalpy_temperature(sensor::Sensor *enthalpy_temperature) { this->enthalpy_temperature = enthalpy_temperature; }
+  void set_ewt_temperature(sensor::Sensor *ewt_temperature) { this->ewt_temperature = ewt_temperature; }
+  void set_reheating_temperature(sensor::Sensor *reheating_temperature) { this->reheating_temperature = reheating_temperature; }
+  void set_kitchen_hood_temperature(sensor::Sensor *kitchen_hood_temperature) { this->kitchen_hood_temperature = kitchen_hood_temperature; }
+  void set_return_air_level(sensor::Sensor *return_air_level) { this->return_air_level = return_air_level; }
+  void set_supply_air_level(sensor::Sensor *supply_air_level) { this->supply_air_level = supply_air_level; }
+  void set_ventilation_level(sensor::Sensor *ventilation_level) { this->ventilation_level = ventilation_level; }
+  void set_is_supply_fan_active(binary_sensor::BinarySensor *is_supply_fan_active) { this->is_supply_fan_active = is_supply_fan_active; }
+  void set_is_filter_full(binary_sensor::BinarySensor *is_filter_full) { this->is_filter_full = is_filter_full; }
+  void set_bypass_factor(sensor::Sensor *bypass_factor) { this->bypass_factor = bypass_factor; }
+  void set_bypass_step(sensor::Sensor *bypass_step) { this->bypass_step = bypass_step; }
+  void set_bypass_correction(sensor::Sensor *bypass_correction) { this->bypass_correction = bypass_correction; }
+  void set_is_summer_mode(binary_sensor::BinarySensor *is_summer_mode) { this->is_summer_mode = is_summer_mode; }
 };
 
 }  // namespace comfoair

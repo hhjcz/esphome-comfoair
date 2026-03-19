@@ -13,7 +13,6 @@ ComfoAirComponent = comfoair_ns.class_('ComfoAirComponent', climate.Climate, cg.
 DEPENDENCIES=['uart']
 AUTO_LOAD = ['sensor', 'climate', 'binary_sensor']
 REQUIRED_KEY_NAME = "name"
-CONF_HUB_ID = 'comfoair'
 
 CONF_FAN_SUPPLY_AIR_PERCENTAGE = "fan_supply_air_percentage"
 CONF_FAN_EXHAUST_AIR_PERCENTAGE = "fan_exhaust_air_percentage"
