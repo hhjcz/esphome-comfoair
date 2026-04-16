@@ -14,10 +14,10 @@ namespace comfoair {
 class ComfoAirComponent : public climate::Climate, public PollingComponent, public api::CustomAPIDevice, public uart::UARTDevice {
 public:
 
-  // Poll every 600ms
-  ComfoAirComponent() : 
-  Climate(), 
-  PollingComponent(600),
+  // Default poll interval 10s; overridden by update_interval in YAML
+  ComfoAirComponent() :
+  Climate(),
+  PollingComponent(10000),
   UARTDevice() { }
   
   void setup() override {
