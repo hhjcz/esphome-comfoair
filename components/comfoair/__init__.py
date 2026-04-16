@@ -162,13 +162,14 @@ cv.Optional(CONF_IS_FILTER_FULL): binary_sensor.binary_sensor_schema(device_clas
 })
 
 CONFIG_SCHEMA = cv.All(
-    climate.climate_schema(ComfoAirComponent).extend( {
+    climate.climate_schema(ComfoAirComponent).extend({
         cv.GenerateID(CONF_ID): cv.declare_id(ComfoAirComponent),
         cv.Required(REQUIRED_KEY_NAME): cv.string,
+        cv.Optional(CONF_UPDATE_INTERVAL, default='10s'): cv.update_interval,
     })
     .extend(uart.UART_DEVICE_SCHEMA)
     .extend(comfoair_sensors_schemas)
-    .extend(cv.polling_component_schema('10s'))
+    .extend(cv.COMPONENT_SCHEMA)
 )
 
 
@@ -176,6 +177,7 @@ def to_code(config):
     """Generates code"""
     var = cg.new_Pvariable(config[CONF_ID])
     yield cg.register_component(var, config)
+    cg.add(var.set_update_interval(config[CONF_UPDATE_INTERVAL]))
     yield uart.register_uart_device(var, config)
     yield climate.register_climate(var, config)
     paren = yield cg.get_variable(config[CONF_UART_ID])
